@@ -69,6 +69,67 @@ export class ProfileComponent implements OnInit {
       )
   }
 
+  updateAccountSettings(settingsForm: NgForm): void {
+    this.isLoadingSubject$.next(true);
+    this.profileState$ = this.userService.updateAccountSettings$(settingsForm.value)
+      .pipe(map(response => {
+        console.log(response);
+        this.dataSubject.next({ ...response, data: response.data });
+        this.isLoadingSubject$.next(false);
+        return { dataState: DataState.LOADED, appData: this.dataSubject.value };
+      }),
+        startWith({ dataState: DataState.LOADED, appData: this.dataSubject.value }),
+        catchError((error: string) => {
+          this.isLoadingSubject$.next(false);
+          return of({ dataState: DataState.LOADED, appData: this.dataSubject.value, error })
+        })
+      )
+  }
+
+  toggleMfa(): void {
+    this.isLoadingSubject$.next(true);
+    this.profileState$ = this.userService.toggleMfa$()
+      .pipe(map(response => {
+        console.log(response);
+        this.dataSubject.next({ ...response, data: response.data });
+        this.isLoadingSubject$.next(false);
+        return { dataState: DataState.LOADED, appData: this.dataSubject.value };
+      }),
+        startWith({ dataState: DataState.LOADED, appData: this.dataSubject.value }),
+        catchError((error: string) => {
+          this.isLoadingSubject$.next(false);
+          return of({ dataState: DataState.LOADED, appData: this.dataSubject.value, error })
+        })
+      )
+  }
+
+  updatePicture(image: File): void {
+    if (image) {
+      this.isLoadingSubject$.next(true);
+      this.profileState$ = this.userService.updateImage$(this.getFormData(image))
+        .pipe(map(response => {
+          console.log(response);
+          this.dataSubject.next({ ...response, 
+            data: {...response.data,
+               user: {...response.data.user, imageUrl: `${response.data.user.imageUrl}?time=${new Date().getTime()}`}} });
+          this.isLoadingSubject$.next(false);
+          return { dataState: DataState.LOADED, appData: this.dataSubject.value };
+        }),
+          startWith({ dataState: DataState.LOADED, appData: this.dataSubject.value }),
+          catchError((error: string) => {
+            this.isLoadingSubject$.next(false);
+            return of({ dataState: DataState.LOADED, appData: this.dataSubject.value, error })
+          })
+        )
+    }
+
+  }
+  private getFormData(image: File): FormData {
+    const formData = new FormData();
+    formData.append('image',image);
+    return formData;
+  }
+
   updatePassword(passwordForm: NgForm): void {
     this.isLoadingSubject$.next(true);
     if (this.isPasswordAreSame(passwordForm.value.newPassword, passwordForm.value.confirmNewPassword)) {
@@ -87,7 +148,7 @@ export class ProfileComponent implements OnInit {
           })
         )
     } else {
-      
+
       passwordForm.reset();
       console.log("Passwords dont match");
       this.isLoadingSubject$.next(false);

@@ -76,6 +76,31 @@ export class UserService {
         catchError(this.handleError)
       )
 
+  updateAccountSettings$ = (settingsForm: { enabled: boolean, locked: boolean }) => <Observable<CustomHttpResponse<Profile>>>
+    this.http.put<CustomHttpResponse<Profile>>
+      (`${this.server}/users/update/settings`, settingsForm)
+      .pipe(
+        tap(console.log),
+        catchError(this.handleError)
+      )
+
+  toggleMfa$ = () => <Observable<CustomHttpResponse<Profile>>>
+    this.http.put<CustomHttpResponse<Profile>>
+      (`${this.server}/users/togglemfa`, {})
+      .pipe(
+        tap(console.log),
+        catchError(this.handleError)
+      )
+
+  updateImage$ = (formData: FormData) => <Observable<CustomHttpResponse<Profile>>>
+    this.http.put<CustomHttpResponse<Profile>>
+      (`${this.server}/users/update/image`, formData)
+      .pipe(
+        tap(console.log),
+        catchError(this.handleError)
+      )
+
+
   private handleError(handleError: HttpErrorResponse): Observable<never> {
     let errorMessage: string;
     if (handleError.error instanceof ErrorEvent) {
