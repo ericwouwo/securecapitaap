@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Observable, of, BehaviorSubject, map, startWith, catchError } from 'rxjs';
 import { DataState } from 'src/app/enum/datastate.enum';
+import { EventType } from 'src/app/enum/events.type.enum';
 import { CustomHttpResponse, LoginState, Profile } from 'src/app/interface/appstates';
 import { State } from 'src/app/interface/state';
 import { UserService } from 'src/app/service/user.service';
@@ -17,7 +18,10 @@ export class ProfileComponent implements OnInit {
   private dataSubject = new BehaviorSubject<CustomHttpResponse<Profile>>(null);
   private isLoadingSubject$ = new BehaviorSubject<boolean>(false);
   isLoading$ = this.isLoadingSubject$.asObservable();
+  private showLogsSubject = new BehaviorSubject<boolean>(false);
+  showLogs$ = this.showLogsSubject.asObservable();
   readonly DataState = DataState;
+  readonly EventType = EventType;
 
   constructor(private userService: UserService) { }
 
@@ -136,6 +140,7 @@ export class ProfileComponent implements OnInit {
       this.profileState$ = this.userService.updatePassword$(passwordForm.value)
         .pipe(map(response => {
           console.log(response);
+          this.dataSubject.next({ ...response, data: response.data });
           passwordForm.reset();
           this.isLoadingSubject$.next(false);
           return { dataState: DataState.LOADED, appData: this.dataSubject.value };
@@ -153,6 +158,10 @@ export class ProfileComponent implements OnInit {
       console.log("Passwords dont match");
       this.isLoadingSubject$.next(false);
     }
+  }
+
+  toggleLogs():void{
+    this.showLogsSubject.next(!this.showLogsSubject.value);
   }
 
   private isPasswordAreSame(newPassword: string, confirmNewPassword: string): boolean {
